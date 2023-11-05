@@ -104,12 +104,9 @@ int main(void)
   MX_DAC1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  //char uart_buf[50];
- // int uart_buf_len;
 
    HAL_ADC_Start(&hadc1);
    HAL_TIM_Base_Start_IT(&htim6);
-// uint32_t value = 1000;
 
   /* USER CODE END 2 */
 
@@ -117,16 +114,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  /*
-	  	value = HAL_ADC_GetValue(&hadc1);
-	  	uart_buf_len = sprintf(uar_buf, "hadc: %d\r\n", value);
-	  	HAL_UART_Transmit(&huart2, (uint8_t *) uart_buf, uart_buf_len);
-		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
-		HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-		HAL_Delay(1000);
-		HAL_DAC_Stop(&hdac1, DAC_CHANNEL_1);
-		HAL_Delay(1000);
-		*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -399,44 +386,38 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+ * @brief 	HAL timer callback function. Reads ADC value from poti, calls mapping function and sets DAC value for LED.
+ * @param 	htim: pointer to the TIM handle
+ * @retval 	None
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
-	char uart_adc[30];
-	int uart_adc_len;
+//	char uart_adc[30];													// Commented out: Code using UART to show ADC value in a terminal program.
+//	int uart_adc_len;													// Used to find out which range of values to map and use as minimum/maximum.
 	if (htim == &htim6) {
 		HAL_ADC_Start(&hadc1);
 		int value = HAL_ADC_GetValue(&hadc1);
-		uart_adc_len = sprintf(uart_adc, "ADC: %d\r\n", (int) value);
-		HAL_UART_Transmit(&huart2, (uint8_t *) uart_adc, uart_adc_len, 100);
+
+//		uart_adc_len = sprintf(uart_adc, "ADC: %d\r\n", (int) value);
+//		HAL_UART_Transmit(&huart2, (uint8_t *) uart_adc, uart_adc_len, 100);
+
 		value = map(value, 0, 4095, 700, 1400);
 		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
 		HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 		HAL_ADC_Stop(&hadc1);
 	}
-
-	/*uint32_t value;
-	char uart_buf[50];
-	int uart_buf_len;
-
-		//HAL_ADC_Start(&hadc1);
-	  	value = HAL_ADC_GetValue(&hadc1);
-	  	uart_buf_len = sprintf(uart_buf, "hadc: %d\r\n", (int) value);
-	  	HAL_UART_Transmit(&huart2, (uint8_t *) uart_buf, uart_buf_len, 100);
-		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
-		HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-		//HAL_ADC_Stop(&hadc1);
-		HAL_Delay(500);
-
-		//int value = HAL_ADC_GetValue(&hadc1); 				// Datentyp?
-		// Mapping: eigene map-Funktion (Internet)
-		// value = map(value, 0, 4095, LED_0, LED_100);
-		//HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
-		// Error Handling: != HAL_OK
-		//HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-		 */
-
 }
 
+/**
+ * @brief 	Mapping function, maps value from input min/max to output min/max.
+ * @param 	x: Value to be mapped from input scale to output scale.
+ * @param	in_min: Minimum value of input scale.
+ * @param 	in_max: Maximum value of input scale.
+ * @param	out_in: Minimum value of output scale.
+ * @param 	out_max: Maximum value of output scale.
+ * @retval	Value on output scale.
+ */
 int map(int x, int in_min, int in_max, int out_min, int out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
