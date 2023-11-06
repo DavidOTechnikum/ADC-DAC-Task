@@ -28,6 +28,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+#define PRESCALER_TIM6 5
+
+#define IN_MIN 0										// Input values for "map" function
+#define IN_MAX 4095
+#define OUT_MIN 700
+#define OUT_MAX 1400
+
 
 /* USER CODE END PTD */
 
@@ -62,7 +69,7 @@ static void MX_TIM6_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-int map(int x, int in_min, int in_max, int out_min, int out_max);
+uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max);
 
 /* USER CODE END PFP */
 
@@ -300,7 +307,7 @@ static void MX_TIM6_Init(void)
 
   /* USER CODE END TIM6_Init 1 */
   htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 5;
+  htim6.Init.Prescaler = PRESCALER_TIM6;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim6.Init.Period = 65535;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
@@ -397,12 +404,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 //	int uart_adc_len;													// Used to find out which range of values to map and use as minimum/maximum.
 	if (htim == &htim6) {
 		HAL_ADC_Start(&hadc1);
-		int value = HAL_ADC_GetValue(&hadc1);
+		uint32_t value = HAL_ADC_GetValue(&hadc1);
 
 //		uart_adc_len = sprintf(uart_adc, "ADC: %d\r\n", (int) value);
 //		HAL_UART_Transmit(&huart2, (uint8_t *) uart_adc, uart_adc_len, 100);
 
-		value = map(value, 0, 4095, 700, 1400);
+		value = map(value, IN_MIN, IN_MAX, OUT_MIN, OUT_MAX);
 		HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, value);
 		HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 		HAL_ADC_Stop(&hadc1);
@@ -418,8 +425,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
  * @param 	out_max: Maximum value of output scale.
  * @retval	Value on output scale.
  */
-int map(int x, int in_min, int in_max, int out_min, int out_max) {
-	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;						// uint32_t necessary for calculation
 }
 /* USER CODE END 4 */
 
